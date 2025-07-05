@@ -1,0 +1,176 @@
+-- Create Supplier table
+
+CREATE TABLE Supplier (
+    SupplierID INT PRIMARY KEY,
+    Fname VARCHAR(50) NOT NULL,
+    Mname VARCHAR(50),
+    Lname VARCHAR(50) NOT NULL,
+    Location VARCHAR(255) NOT NULL	
+);
+
+
+-- Create SupplierContactInformation table
+
+CREATE TABLE SupplierContactInformation (
+    SupplierID INT,
+    Email VARCHAR(50),
+    PRIMARY KEY (SupplierID, Email),
+    FOREIGN KEY (SupplierID) REFERENCES Supplier(SupplierID) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+
+-- Create SupplierPhoneInformation table
+
+CREATE TABLE SupplierPhoneInformation (
+    SupplierID INT,
+    PhoneNo VARCHAR(20),
+    PRIMARY KEY (SupplierID, PhoneNo),
+    FOREIGN KEY (SupplierID) REFERENCES Supplier(SupplierID) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+
+-- Create User table
+
+CREATE TABLE User (
+    UserID INT PRIMARY KEY,
+    Username VARCHAR(50) NOT NULL,
+    Password VARCHAR(50) NOT NULL CHECK (LENGTH(Password) <= 50),
+    Role VARCHAR(20) NOT NULL 
+);
+
+
+-- Create Warehouse table
+
+CREATE TABLE Warehouse (
+    WarehouseID INT PRIMARY KEY,
+    UserID INT NOT NULL,
+    Capacity INT DEFAULT 0 NOT NULL,
+    Location VARCHAR(255) NOT NULL,
+    WarehouseName VARCHAR(100) NOT NULL,
+    FOREIGN KEY (UserID) REFERENCES User(UserID) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT UNQ_Warehouse_Location UNIQUE (Location)
+);
+
+
+-- Create Customer table
+
+CREATE TABLE Customer (
+    CustomerID INT PRIMARY KEY,
+    Fname VARCHAR(50) NOT NULL,
+    Mname VARCHAR(50),
+    Lname VARCHAR(50) NOT NULL,
+    State VARCHAR(50) NOT NULL,
+    City VARCHAR(50) NOT NULL,
+    Pincode VARCHAR(20) NOT NULL,
+    Street VARCHAR(255) NOT NULL
+);
+
+
+-- Create CustomerContactInformation table
+
+CREATE TABLE CustomerContactInformation (
+    CustomerID INT,
+    Email VARCHAR(50),
+    PRIMARY KEY (CustomerID, Email),
+    FOREIGN KEY (CustomerID) REFERENCES Customer(CustomerID) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+
+-- Create CustomerPhoneInformation table
+
+CREATE TABLE CustomerPhoneInformation (
+    CustomerID INT,
+    PhoneNo VARCHAR(20),
+    PRIMARY KEY (CustomerID, PhoneNo),
+    FOREIGN KEY (CustomerID) REFERENCES Customer(CustomerID) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- Create Employee table
+
+CREATE TABLE Employee (
+    EmployeeID INT PRIMARY KEY,
+    Fname VARCHAR(50) NOT NULL,
+    Mname VARCHAR(50),
+    Lname VARCHAR(50) NOT NULL
+);
+
+-- Create EmployeePhoneInformation table
+
+CREATE TABLE EmployeePhoneInformation (
+    EmployeeID INT,
+    PhoneNo VARCHAR(20),
+    PRIMARY KEY (EmployeeID, PhoneNo),
+    FOREIGN KEY (EmployeeID) REFERENCES Employee(EmployeeID) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+
+-- Create Order table
+
+CREATE TABLE Order (
+    OrderID INT PRIMARY KEY,
+    CustomerID INT NOT NULL,
+    EmployeeID INT NOT NULL,
+    OrderDate DATE DEFAULT CURRENT_DATE NOT NULL,
+    Status VARCHAR(20) DEFAULT 'Pending' NOT NULL,
+    FOREIGN KEY (CustomerID) REFERENCES Customer(CustomerID) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (EmployeeID) REFERENCES Employee(EmployeeID) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- Create Invoice table
+
+CREATE TABLE Invoice (
+    InvoiceID INT PRIMARY KEY,
+    OrderID INT NOT NULL,
+    TotalAmount DECIMAL(10, 2) DEFAULT 0.00 NOT NULL,
+    InvoiceDate DATE DEFAULT CURRENT_DATE NOT NULL,
+    FOREIGN KEY (OrderID) REFERENCES Order(OrderID) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT CHK_TotalAmount CHECK (TotalAmount >= 0)
+);
+
+
+-- Create Product table
+
+CREATE TABLE Product (
+    ProductID INT PRIMARY KEY,
+    SupplierID INT NOT NULL,
+    WarehouseID INT NOT NULL,
+    OrderID INT NOT NULL,
+    ProductName VARCHAR(255) NOT NULL,
+    Category VARCHAR(100),
+    Price DECIMAL(10, 2) DEFAULT 0.00 NOT NULL,
+    AvailableQuantity INT DEFAULT 0 NOT NULL,
+    FOREIGN KEY (SupplierID) REFERENCES Supplier(SupplierID) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (WarehouseID) REFERENCES Warehouse(WarehouseID) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (OrderID) REFERENCES Order(OrderID) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT CHK_Price CHECK (Price >= 0),
+    CONSTRAINT CHK_Quantity CHECK (AvailableQuantity >= 0)
+);
+
+
+-- Create Refund table
+
+CREATE TABLE Refund (
+    OrderID INT NOT NULL,
+    RefundDate DATE NOT NULL,
+    RefundAmount DECIMAL(10, 2) NOT NULL,
+    RefundStatus VARCHAR(20) DEFAULT 'Pending' NOT NULL,
+    PRIMARY KEY (OrderID, RefundDate, RefundAmount),
+    FOREIGN KEY (OrderID) REFERENCES Order(OrderID) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT CHK_RefundAmount CHECK (RefundAmount >= 0)
+);
+
+
+-- Create Feedback table
+
+CREATE TABLE Feedback (
+    ProductID INT NOT NULL,
+    CustomerID INT NOT NULL,
+    FeedbackDate DATE NOT NULL,
+    Rating INT NOT NULL,
+    Comment TEXT,
+    PRIMARY KEY (ProductID, CustomerID, FeedbackDate),
+    FOREIGN KEY (ProductID) REFERENCES Product(ProductID) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (CustomerID) REFERENCES Customer(CustomerID) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT CHK_Rating CHECK (Rating BETWEEN 1 AND 5)
+);
+
